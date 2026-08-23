@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -16,22 +16,37 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.10'
 
     - name: Install Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev libltdl-dev \
-          python3-setuptools python3-pip libsqlite3-dev zlib1g-dev openjdk-17-jdk zip unzip
-        pip install --upgrade pip setuptools
-        pip install buildozer cython
+        sudo apt-get install -y \
+          build-essential ccache git libffi-dev libssl-dev libltdl-dev \
+          python3-setuptools python3-pip libsqlite3-dev zlib1g-dev \
+          openjdk-17-jdk zip unzip
+        pip install --upgrade pip
+        pip install buildozer cython==0.29.33
 
-    - name: Accept Licenses and Build with Buildozer
+    - name: Accept Android SDK Licenses
       run: |
-        y | buildozer -v android debug
+        echo y | ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
+        echo y | ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --update || true
+
+    - name: Manually Install Build-Tools 37
+      run: |
+        echo y | ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager "build-tools;37.0.0" || true
+
+    - name: Verify Build-Tools Installation
+      run: |
+        ls -la ~/.buildozer/android/platform/android-sdk/build-tools/ || echo "Not found yet"
+
+    - name: Build with Buildozer
+      run: |
+        buildozer android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug-apk
-        path: bin/*.apk
+        name: bedrocksprite-apk
+        path: bin/*.apk 
