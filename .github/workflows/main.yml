@@ -16,7 +16,6 @@ jobs:
     - name: Free Disk Space
       run: |
         sudo rm -rf /opt/ghc
-        sudo rm -rf /usr/local/lib/android
         sudo rm -rf /usr/share/dotnet
         df -h
 
@@ -38,46 +37,12 @@ jobs:
           build-essential ccache git libffi-dev libssl-dev libltdl-dev \
           python3-setuptools python3-pip libsqlite3-dev zlib1g-dev \
           zip unzip wget
-        pip install --upgrade pip
+        pip install --upgrade pip setuptools
         pip install buildozer cython==0.29.33
-
-    - name: Download Android SDK
-      run: |
-        mkdir -p ~/.buildozer/android/platform/android-sdk
-        cd ~/.buildozer/android/platform
-        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-        unzip -o commandlinetools-linux-9477386_latest.zip
-        mkdir -p android-sdk/cmdline-tools
-        mv cmdline-tools android-sdk/cmdline-tools/latest
-        export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
-        export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-        echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
-
-    - name: Link SDK to Buildozer Path
-      run: |
-        mkdir -p ~/.buildozer/android/platform/android-sdk/tools
-        ln -sf ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin ~/.buildozer/android/platform/android-sdk/tools/bin || true
-        ln -sf ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/lib ~/.buildozer/android/platform/android-sdk/tools/lib || true
-
-    - name: Accept Licenses
-      run: |
-        export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
-        export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-        yes | sdkmanager --licenses || true
-
-    - name: Install Build-Tools 37
-      run: |
-        export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
-        export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-        sdkmanager "build-tools;37.0.0" || true
-        sdkmanager "platforms;android-33" || true
 
     - name: Build with Buildozer
       run: |
-        export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
-        export PATH=$ANDROID_HOME/build-tools/37.0.0:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-        buildozer -v android debug
+        yes | buildozer android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
