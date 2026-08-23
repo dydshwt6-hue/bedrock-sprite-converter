@@ -47,6 +47,12 @@ jobs:
         echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
         echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
 
+    - name: Link SDK to Buildozer Path
+      run: |
+        mkdir -p ~/.buildozer/android/platform/android-sdk/tools
+        ln -sf ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin ~/.buildozer/android/platform/android-sdk/tools/bin || true
+        ln -sf ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/lib ~/.buildozer/android/platform/android-sdk/tools/lib || true
+
     - name: Accept Licenses
       run: |
         export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
@@ -64,7 +70,7 @@ jobs:
       run: |
         export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
         export PATH=$ANDROID_HOME/build-tools/37.0.0:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-        buildozer android debug
+        buildozer -v android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
