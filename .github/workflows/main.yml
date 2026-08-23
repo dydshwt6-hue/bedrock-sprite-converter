@@ -30,21 +30,25 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install Dependencies
+    - name: Install System Dependencies & Android SDK Tools
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           build-essential ccache git libffi-dev libssl-dev libltdl-dev \
           python3-setuptools python3-pip libsqlite3-dev zlib1g-dev \
-          zip unzip wget
+          zip unzip wget android-sdk
         pip install --upgrade pip setuptools
         pip install buildozer cython==0.29.33
 
-    - name: Accept Licenses and Build
+    - name: Pre-accept Android SDK Licenses
       run: |
-        mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-        printf "8933b532284cd507111138029b350357c45e13e7\n24333735771371f44e17807505007f78755b9b94\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333735771371f44e17807505007f78755b9b94" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-        yes | buildozer -v android debug || (echo "y" | buildozer -v android debug)
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        yes | sdkmanager --licenses || true
+
+    - name: Build with Buildozer
+      run: |
+        buildozer -v android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
