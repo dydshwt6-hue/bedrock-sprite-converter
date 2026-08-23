@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -40,9 +40,10 @@ jobs:
         pip install --upgrade pip setuptools
         pip install buildozer cython==0.29.33
 
-    - name: Build with Buildozer
+    - name: Accept Licenses and Build
       run: |
-        yes | buildozer android debug
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        buildozer -v android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
