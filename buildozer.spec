@@ -1,28 +1,44 @@
-[app]
+name: Build Android APK
 
-title = Bedrock Sprite Converter
-package.name = bedrocksprite
-package.domain = org.yourdomain
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
-source.dir = .
-source.include_exts = py,png,jpg,ttf,json
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-version = 0.1
-requirements = python3,kivy,opencv-python,pillow,plyer
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
 
-orientation = portrait
-fullscreen = 1
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
 
-android.permissions = READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,INTERNET
-android.api = 33
-android.minapi = 21
-android.sdk_version = 33
-android.ndk_version = 23b
-android.build_tools_version = 33.0.0
-android.gradle_dependencies = 
-android.enable_androidx = True
-android.openssl = True
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential ccache git libffi-dev libssl-dev libltdl-dev \
+          python3-setuptools python3-pip libsqlite3-dev zlib1g-dev \
+          openjdk-17-jdk zip unzip
+        pip install --upgrade pip
+        pip install buildozer cython==0.29.33
 
-[buildozer]
-log_level = 2
-warn_on_root = 1 
+    - name: Accept Android SDK Licenses
+      run: |
+        yes | ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
+        yes | ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --update || true
+
+    - name: Build with Buildozer
+      run: |
+        buildozer android debug -- --android-build-tools-version=33.0.0
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: bedrocksprite-apk
+        path: bin/*.apk 
