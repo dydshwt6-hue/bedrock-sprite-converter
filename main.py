@@ -33,6 +33,14 @@ jobs:
         yes | ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
         yes | ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --update || true
 
+    - name: Manually Install Build-Tools 37
+      run: |
+        ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager "build-tools;37.0.0" || true
+
+    - name: Verify Build-Tools Installation
+      run: |
+        ls -la ~/.buildozer/android/platform/android-sdk/build-tools/ || echo "Not found yet"
+
     - name: Build with Buildozer
       run: |
         buildozer android debug
@@ -41,4 +49,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: bedrocksprite-apk
-        path: bin/*.apk 
+        path: bin/*.apk
